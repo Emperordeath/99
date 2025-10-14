@@ -1,10 +1,3 @@
---[[
-═══════════════════════════════════════════════════════════════
-    Script Teleporte com Fluent UI - MOBILE FRIENDLY
-    Biblioteca moderna e responsiva
-═══════════════════════════════════════════════════════════════
---]]
-
 print("Carregando Fluent UI Library...")
 
 -- Carregar Fluent UI sem quebrar se der nil
