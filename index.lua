@@ -1,22 +1,7 @@
 print("Carregando Fluent UI Library...")
 
 -- Apenas conserta o erro
-local FluentFunc = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))
-if FluentFunc then
-    local Fluent = FluentFunc()
-else
-    warn("Fluent UI não carregou, mas o script continua...")
-end
-
-local SaveManagerFunc = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))
-if SaveManagerFunc then
-    local SaveManager = SaveManagerFunc()
-end
-
-local InterfaceManagerFunc = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))
-if InterfaceManagerFunc then
-    local InterfaceManager = InterfaceManagerFunc()
-end
+local FluentFunc = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Library.lua"))
 
 -- Serviços
 local Players = game:GetService("Players")
