@@ -1,11 +1,101 @@
 --[[
-    Versão otimizada para mobile
+    Voidrake Hub - Teleport Script
+    Powered by: Deathbringer
+    UI: Rayfield (Mobile/PC Friendly)
+    Features: Dropdowns estáveis, tela de loading épica, teleporte preciso.
 ]]
-task.wait(5)
 
-print("Carregando Rayfield UI...")
+-- ========== [ Carregamento ] ==========
+taik.wait(5)
 
--- Carregar Rayfield (URL confiável e funcional)
+-- ========== [ Tela de Carregamento ] ==========
+local function createLoadingScreen()
+    -- Criar ScreenGui
+    local loadingGui = Instance.new("ScreenGui")
+    loadingGui.Name = "VoidrakeLoading"
+    loadingGui.IgnoreGuiInset = true
+    loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    loadingGui.Parent = game:GetService("CoreGui")
+
+    -- Frame de fundo (cobre toda a tela)
+    local background = Instance.new("Frame")
+    background.Name = "Background"
+    background.Size = UDim2.new(1, 0, 1, 0)
+    background.Position = UDim2.new(0, 0, 0, 0)
+    background.BackgroundColor3 = Color3.fromRGB(10, 0, 20) -- Preto/roxo escuro
+    background.BorderSizePixel = 0
+    background.Parent = loadingGui
+
+    -- Gradiente roxo/preto
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 0, 40)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 80))
+    }
+    gradient.Rotation = 45
+    gradient.Parent = background
+
+    -- Logo "Voidrake Hub"
+    local logo = Instance.new("TextLabel")
+    logo.Name = "Logo"
+    logo.Size = UDim2.new(0.6, 0, 0.2, 0)
+    logo.Position = UDim2.new(0.5, 0, 0.3, 0)
+    logo.AnchorPoint = Vector2.new(0.5, 0)
+    logo.Text = "VOIDRAKE HUB"
+    logo.TextColor3 = Color3.fromRGB(200, 100, 255) -- Roxo claro
+    logo.TextStrokeTransparency = 0
+    logo.TextSize = 40
+    logo.Font = Enum.Font.GothamBlack
+    logo.BackgroundTransparency = 1
+    logo.TextScaled = true
+    logo.Parent = background
+
+    -- Subtítulo "Powered by Deathbringer"
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.Size = UDim2.new(0.4, 0, 0.1, 0)
+    subtitle.Position = UDim2.new(0.5, 0, 0.5, 0)
+    subtitle.AnchorPoint = Vector2.new(0.5, 0)
+    subtitle.Text = "POWERED BY: DEATHBRINGER"
+    subtitle.TextColor3 = Color3.fromRGB(150, 100, 200)
+    subtitle.TextStrokeTransparency = 0
+    subtitle.TextSize = 20
+    subtitle.Font = Enum.Font.GothamSemibold
+    subtitle.BackgroundTransparency = 1
+    subtitle.Parent = background
+
+    -- Barra de progresso
+    local progressBar = Instance.new("Frame")
+    progressBar.Name = "ProgressBar"
+    progressBar.Size = UDim2.new(0.4, 0, 0.03, 0)
+    progressBar.Position = UDim2.new(0.5, 0, 0.7, 0)
+    progressBar.AnchorPoint = Vector2.new(0.5, 0)
+    progressBar.BackgroundColor3 = Color3.fromRGB(30, 0, 60)
+    progressBar.BorderSizePixel = 0
+    progressBar.Parent = background
+
+    local progressFill = Instance.new("Frame")
+    progressFill.Name = "ProgressFill"
+    progressFill.Size = UDim2.new(0, 0, 1, 0)
+    progressFill.BackgroundColor3 = Color3.fromRGB(150, 0, 255) -- Roxo vibrante
+    progressFill.BorderSizePixel = 0
+    progressFill.Parent = progressBar
+
+    -- Animação da barra de progresso
+    for i = 1, 100 do
+        progressFill.Size = UDim2.new(i/100, 0, 1, 0)
+        task.wait(0.02)
+    end
+
+    -- Remover tela após carregamento
+    task.wait(0.5)
+    loadingGui:Destroy()
+end
+
+-- Iniciar tela de carregamento
+createLoadingScreen()
+
+-- ========== [ Carregar Rayfield ] ==========
 local Rayfield
 local success, err = pcall(function()
     Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
@@ -15,13 +105,12 @@ if not success or not Rayfield then
     error("❌ Falha ao carregar Rayfield. Verifique sua conexão ou executor.")
 end
 
--- Serviços
+-- ========== [ Variáveis e Configurações ] ==========
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
--- Variáveis
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
@@ -33,7 +122,6 @@ local conexao = nil
 local selectedBandage = nil
 local selectedChest = nil
 
--- Configurações
 local Config = {
     stealthMode = false,
     stealthDelay = 0.5,
@@ -51,17 +139,52 @@ local Config = {
     dashSpeed = 100
 }
 
--- Sistema de Notificação
+-- ========== [ Funções Auxiliares ] ==========
 local function notify(title, msg)
     Rayfield:Notify({
         Title = title,
         Content = msg,
         Duration = 3,
-        Image = 4483362458 -- Ícone padrão
+        Image = 4483362458
     })
 end
 
--- Escanear itens
+local function getPos(item)
+    return item:IsA("Model") and item:GetPivot().Position or item.Position
+end
+
+local function getDist(item)
+    if not hrp or not hrp.Parent then return math.huge end
+    return (hrp.Position - getPos(item)).Magnitude
+end
+
+-- ========== [ Dropdowns Estáveis ] ==========
+local bandagemDropdownValues = {}
+local bauDropdownValues = {}
+local bandagemDropdown
+local bauDropdown
+
+local function updateDropdowns()
+    bandagemDropdownValues = {}
+    bauDropdownValues = {}
+
+    for i, bandagem in ipairs(bandagens) do
+        table.insert(bandagemDropdownValues, string.format("Bandagem #%d (Dist: %d)", i, math.floor(getDist(bandagem))))
+    end
+
+    for i, bau in ipairs(baus) do
+        table.insert(bauDropdownValues, string.format("Baú #%d (Dist: %d)", i, math.floor(getDist(bau))))
+    end
+
+    if bandagemDropdown then
+        bandagemDropdown:SetValues(bandagemDropdownValues)
+    end
+    if bauDropdown then
+        bauDropdown:SetValues(bauDropdownValues)
+    end
+end
+
+-- ========== [ Escanear Itens ] ==========
 local function scan()
     bandagens = {}
     baus = {}
@@ -82,21 +205,11 @@ local function scan()
     end
 
     print("Bandagens: " .. #bandagens .. " | Baús: " .. #baus)
-    notify("✅ Itens Encontrados", string.format("Bandagens: %d | Baús: %d", #bandagens, #baus))
+    updateDropdowns()
+    notify("✅ Itens Atualizados", string.format("Bandagens: %d | Baús: %d", #bandagens, #baus))
 end
 
--- Obter posição
-local function getPos(item)
-    return item:IsA("Model") and item:GetPivot().Position or item.Position
-end
-
--- Calcular distância
-local function getDist(item)
-    if not hrp or not hrp.Parent then return math.huge end
-    return (hrp.Position - getPos(item)).Magnitude
-end
-
--- Teleportar
+-- ========== [ Teleporte ] ==========
 local function tele(item)
     if not item or not item.Parent then
         notify("❌ Erro", "Item não existe mais")
@@ -112,7 +225,6 @@ local function tele(item)
     local pos = getPos(item)
     local targetCFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
 
-    -- Modo Stealth
     if Config.stealthMode then
         local steps = 10
         local startCFrame = hrp.CFrame
@@ -127,7 +239,6 @@ local function tele(item)
     notify("✅ Sucesso", "Teleportado!")
 end
 
--- Teleportar mais próximo
 local function teleProximo(lista, tipo)
     if #lista == 0 then
         notify("⚠️ Aviso", "Nenhum(a) " .. tipo .. " encontrado(a)")
@@ -152,7 +263,22 @@ local function teleProximo(lista, tipo)
     end
 end
 
--- Criar chão
+local function teleSelecionado(lista, dropdown, tipo)
+    local selected = dropdown.CurrentValue
+    if not selected then
+        notify("⚠️ Aviso", "Selecione um(a) " .. tipo .. " primeiro!")
+        return
+    end
+
+    local index = tonumber(selected:match("#(%d+)"))
+    if index and lista[index] then
+        tele(lista[index])
+    else
+        notify("❌ Erro", tipo .. " não encontrada(o)!")
+    end
+end
+
+-- ========== [ Funções de Utilidade ] ==========
 local function criarChao()
     if chao then chao:Destroy() end
 
@@ -180,28 +306,8 @@ local function removerChao()
     end
 end
 
--- Atualizar personagem
-player.CharacterAdded:Connect(function(newChar)
-    char = newChar
-    hrp = char:WaitForChild("HumanoidRootPart")
-
-    if chaoAtivo then
-        task.wait(0.5)
-        criarChao()
-        if conexao then conexao:Disconnect() end
-        conexao = RunService.Heartbeat:Connect(function()
-            if chao and hrp then
-                local chaoY = chao.Position.Y
-                chao.Position = Vector3.new(hrp.Position.X, chaoY, hrp.Position.Z)
-                if hrp.Position.Y < chaoY then
-                    hrp.CFrame = CFrame.new(hrp.Position.X, chaoY + 5, hrp.Position.Z)
-                end
-            end
-        end)
-    end
-end)
-
--- Anti-AFK
+-- ========== [ Sistemas Avançados ] ==========
+-- Anti-AFK, Anti-Void, ESP, Chams, etc. (mesmo código anterior)
 local antiAFKConnection
 local function toggleAntiAFK(enabled)
     if antiAFKConnection then
@@ -221,7 +327,6 @@ local function toggleAntiAFK(enabled)
     end
 end
 
--- Anti-Void
 local antiVoidConnection
 local lastSafePosition = nil
 local function toggleAntiVoid(enabled)
@@ -247,7 +352,6 @@ local function toggleAntiVoid(enabled)
     end
 end
 
--- ESP System
 local ESPObjects = {}
 local function clearESP()
     for _, obj in pairs(ESPObjects) do
@@ -296,7 +400,6 @@ local function toggleESP(enabled)
     end
 end
 
--- Chams (Highlight)
 local chamObjects = {}
 local function toggleChams(enabled)
     for _, obj in pairs(chamObjects) do
@@ -337,7 +440,6 @@ local function toggleChams(enabled)
     end
 end
 
--- Infinite Jump
 local jumpConnection
 local function toggleInfiniteJump(enabled)
     if jumpConnection then
@@ -357,7 +459,6 @@ local function toggleInfiniteJump(enabled)
     end
 end
 
--- Dash System
 local lastDash = 0
 local function performDash()
     if os.clock() - lastDash < 1 then return end
@@ -380,7 +481,7 @@ local function performDash()
     end
 end
 
--- Hotkey System
+-- ========== [ Hotkeys ] ==========
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
@@ -415,16 +516,38 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Criar Interface com Rayfield
+-- ========== [ Atualizar Personagem ] ==========
+player.CharacterAdded:Connect(function(newChar)
+    char = newChar
+    hrp = char:WaitForChild("HumanoidRootPart")
+
+    if chaoAtivo then
+        task.wait(0.5)
+        criarChao()
+        if conexao then conexao:Disconnect() end
+        conexao = RunService.Heartbeat:Connect(function()
+            if chao and hrp then
+                local chaoY = chao.Position.Y
+                chao.Position = Vector3.new(hrp.Position.X, chaoY, hrp.Position.Z)
+                if hrp.Position.Y < chaoY then
+                    hrp.CFrame = CFrame.new(hrp.Position.X, chaoY + 5, hrp.Position.Z)
+                end
+            end
+        end)
+    end
+end)
+
+-- ========== [ Interface (Rayfield) ] ==========
 local Window = Rayfield:CreateWindow({
-    Name = "🎯 Teleport Script v3.0",
+    Name = "Voidrake Hub",
     LoadingTitle = "Carregando...",
-    LoadingSubtitle = "by Deathbringer",
+    LoadingSubtitle = "Powered by: Deathbringer",
     ConfigurationSaving = { Enabled = true },
-    Discord = { Enabled = false }
+    Discord = { Enabled = false },
+    KeySystem = false
 })
 
--- Abas
+-- ========== [ Abas e Botões ] ==========
 local Tabs = {
     Bandagens = Window:CreateTab("Bandagens", 4483362458),
     Baus = Window:CreateTab("Baús", 4483362458),
@@ -444,12 +567,42 @@ Tabs.Bandagens:CreateButton({
     end
 })
 
+bandagemDropdown = Tabs.Bandagens:CreateDropdown({
+    Name = "Selecionar Bandagem",
+    Options = bandagemDropdownValues,
+    CurrentOption = nil,
+    Flag = "bandagem_selecionada",
+    Callback = function() end
+})
+
+Tabs.Bandagens:CreateButton({
+    Name = "Teleportar para Selecionada",
+    Callback = function()
+        teleSelecionado(bandagens, bandagemDropdown, "bandagem")
+    end
+})
+
 -- ABA BAÚS
 Tabs.Baus:CreateButton({
     Name = "Teleportar para Mais Próximo",
     Callback = function()
         scan()
         teleProximo(baus, "baú")
+    end
+})
+
+bauDropdown = Tabs.Baus:CreateDropdown({
+    Name = "Selecionar Baú",
+    Options = bauDropdownValues,
+    CurrentOption = nil,
+    Flag = "bau_selecionado",
+    Callback = function() end
+})
+
+Tabs.Baus:CreateButton({
+    Name = "Teleportar para Selecionado",
+    Callback = function()
+        teleSelecionado(baus, bauDropdown, "baú")
     end
 })
 
@@ -543,6 +696,7 @@ Tabs.Config:CreateButton({
     end
 })
 
--- Iniciar scan automático
+-- ========== [ Inicialização ] ==========
 scan()
-notify("✅ Script Carregado", "Pronto para usar!")
+notify("✅ Voidrake Hub", "Script carregado com sucesso!")
+
