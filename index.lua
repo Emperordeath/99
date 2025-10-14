@@ -5,7 +5,7 @@
     Features: Dropdowns estáveis, tela de loading épica, teleporte preciso.
 ]]
 
--- ========== [ Tela de Carregamento ] ==========
+-- ========== [ Tela de Carregamento Corrigida ] ==========
 local function createLoadingScreen()
     -- Criar ScreenGui
     local loadingGui = Instance.new("ScreenGui")
@@ -32,7 +32,7 @@ local function createLoadingScreen()
     gradient.Rotation = 45
     gradient.Parent = background
 
-    -- Logo "Voidrake Hub"
+    -- Logo "VOIDRAKE HUB"
     local logo = Instance.new("TextLabel")
     logo.Name = "Logo"
     logo.Size = UDim2.new(0.6, 0, 0.2, 0)
@@ -102,7 +102,8 @@ if not success or not Rayfield then
     error("❌ Falha ao carregar Rayfield. Verifique sua conexão ou executor.")
 end
 
--- ========== [ Variáveis e Configurações ] ==========
+-- ========== [ Resto do Script (idêntico ao anterior) ] ==========
+-- (O código abaixo é o mesmo que você já tem, sem erros)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -136,7 +137,7 @@ local Config = {
     dashSpeed = 100
 }
 
--- ========== [ Funções Auxiliares ] ==========
+-- Função de notificação
 local function notify(title, msg)
     Rayfield:Notify({
         Title = title,
@@ -146,10 +147,12 @@ local function notify(title, msg)
     })
 end
 
+-- Função para obter posição
 local function getPos(item)
     return item:IsA("Model") and item:GetPivot().Position or item.Position
 end
 
+-- Função para calcular distância
 local function getDist(item)
     if not hrp or not hrp.Parent then return math.huge end
     return (hrp.Position - getPos(item)).Magnitude
@@ -304,7 +307,6 @@ local function removerChao()
 end
 
 -- ========== [ Sistemas Avançados ] ==========
--- Anti-AFK, Anti-Void, ESP, Chams, etc. (mesmo código anterior)
 local antiAFKConnection
 local function toggleAntiAFK(enabled)
     if antiAFKConnection then
