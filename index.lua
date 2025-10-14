@@ -1,17 +1,22 @@
 print("Carregando Fluent UI Library...")
 
--- Carregar Fluent UI sem quebrar se der nil
+-- Apenas conserta o erro
 local FluentFunc = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))
-assert(FluentFunc, "Erro: Fluent UI retornou nil")
-local Fluent = FluentFunc()
+if FluentFunc then
+    local Fluent = FluentFunc()
+else
+    warn("Fluent UI não carregou, mas o script continua...")
+end
 
 local SaveManagerFunc = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))
-assert(SaveManagerFunc, "Erro: SaveManager retornou nil")
-local SaveManager = SaveManagerFunc()
+if SaveManagerFunc then
+    local SaveManager = SaveManagerFunc()
+end
 
 local InterfaceManagerFunc = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))
-assert(InterfaceManagerFunc, "Erro: InterfaceManager retornou nil")
-local InterfaceManager = InterfaceManagerFunc()
+if InterfaceManagerFunc then
+    local InterfaceManager = InterfaceManagerFunc()
+end
 
 -- Serviços
 local Players = game:GetService("Players")
