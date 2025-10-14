@@ -2,113 +2,31 @@
     Voidrake Hub - Teleport Script
     Powered by: Deathbringer
     UI: Rayfield (Mobile/PC Friendly)
-    Features: Dropdowns estáveis, tela de loading épica, teleporte preciso.
+    Features: Dropdowns estáveis, teleporte preciso, sem erros.
 ]]
 
--- ========== [ Tela de Carregamento Corrigida ] ==========
-local function createLoadingScreen()
-    -- Criar ScreenGui
-    local loadingGui = Instance.new("ScreenGui")
-    loadingGui.Name = "VoidrakeLoading"
-    loadingGui.IgnoreGuiInset = true
-    loadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    loadingGui.Parent = game:GetService("CoreGui")
-
-    -- Frame de fundo (cobre toda a tela)
-    local background = Instance.new("Frame")
-    background.Name = "Background"
-    background.Size = UDim2.new(1, 0, 1, 0)
-    background.Position = UDim2.new(0, 0, 0, 0)
-    background.BackgroundColor3 = Color3.fromRGB(10, 0, 20) -- Preto/roxo escuro
-    background.BorderSizePixel = 0
-    background.Parent = loadingGui
-
-    -- Gradiente roxo/preto
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 0, 40)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 80))
-    }
-    gradient.Rotation = 45
-    gradient.Parent = background
-
-    -- Logo "VOIDRAKE HUB"
-    local logo = Instance.new("TextLabel")
-    logo.Name = "Logo"
-    logo.Size = UDim2.new(0.6, 0, 0.2, 0)
-    logo.Position = UDim2.new(0.5, 0, 0.3, 0)
-    logo.AnchorPoint = Vector2.new(0.5, 0)
-    logo.Text = "VOIDRAKE HUB"
-    logo.TextColor3 = Color3.fromRGB(200, 100, 255) -- Roxo claro
-    logo.TextStrokeTransparency = 0
-    logo.TextSize = 40
-    logo.Font = Enum.Font.GothamBlack
-    logo.BackgroundTransparency = 1
-    logo.TextScaled = true
-    logo.Parent = background
-
-    -- Subtítulo "Powered by Deathbringer"
-    local subtitle = Instance.new("TextLabel")
-    subtitle.Name = "Subtitle"
-    subtitle.Size = UDim2.new(0.4, 0, 0.1, 0)
-    subtitle.Position = UDim2.new(0.5, 0, 0.5, 0)
-    subtitle.AnchorPoint = Vector2.new(0.5, 0)
-    subtitle.Text = "POWERED BY: DEATHBRINGER"
-    subtitle.TextColor3 = Color3.fromRGB(150, 100, 200)
-    subtitle.TextStrokeTransparency = 0
-    subtitle.TextSize = 20
-    subtitle.Font = Enum.Font.GothamSemibold
-    subtitle.BackgroundTransparency = 1
-    subtitle.Parent = background
-
-    -- Barra de progresso
-    local progressBar = Instance.new("Frame")
-    progressBar.Name = "ProgressBar"
-    progressBar.Size = UDim2.new(0.4, 0, 0.03, 0)
-    progressBar.Position = UDim2.new(0.5, 0, 0.7, 0)
-    progressBar.AnchorPoint = Vector2.new(0.5, 0)
-    progressBar.BackgroundColor3 = Color3.fromRGB(30, 0, 60)
-    progressBar.BorderSizePixel = 0
-    progressBar.Parent = background
-
-    local progressFill = Instance.new("Frame")
-    progressFill.Name = "ProgressFill"
-    progressFill.Size = UDim2.new(0, 0, 1, 0)
-    progressFill.BackgroundColor3 = Color3.fromRGB(150, 0, 255) -- Roxo vibrante
-    progressFill.BorderSizePixel = 0
-    progressFill.Parent = progressBar
-
-    -- Animação da barra de progresso
-    for i = 1, 100 do
-        progressFill.Size = UDim2.new(i/100, 0, 1, 0)
-        task.wait(0.02)
-    end
-
-    -- Remover tela após carregamento
-    task.wait(0.5)
-    loadingGui:Destroy()
-end
-
--- Iniciar tela de carregamento
-createLoadingScreen()
-
--- ========== [ Carregar Rayfield ] ==========
+-- Carregar Rayfield (com proteção)
 local Rayfield
 local success, err = pcall(function()
     Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 end)
 
 if not success or not Rayfield then
-    error("❌ Falha ao carregar Rayfield. Verifique sua conexão ou executor.")
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "❌ Erro",
+        Text = "Falha ao carregar Rayfield. Tente outro executor.",
+        Duration = 5
+    })
+    return
 end
 
--- ========== [ Resto do Script (idêntico ao anterior) ] ==========
--- (O código abaixo é o mesmo que você já tem, sem erros)
+-- Serviços
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
+-- Variáveis
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
@@ -117,9 +35,8 @@ local baus = {}
 local chaoAtivo = false
 local chao = nil
 local conexao = nil
-local selectedBandage = nil
-local selectedChest = nil
 
+-- Configurações
 local Config = {
     stealthMode = false,
     stealthDelay = 0.5,
