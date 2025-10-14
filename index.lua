@@ -5,9 +5,6 @@
     Features: Dropdowns estáveis, tela de loading épica, teleporte preciso.
 ]]
 
--- ========== [ Carregamento ] ==========
-taik.wait(5)
-
 -- ========== [ Tela de Carregamento ] ==========
 local function createLoadingScreen()
     -- Criar ScreenGui
@@ -699,4 +696,3 @@ Tabs.Config:CreateButton({
 -- ========== [ Inicialização ] ==========
 scan()
 notify("✅ Voidrake Hub", "Script carregado com sucesso!")
-
