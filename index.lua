@@ -2,6 +2,7 @@ print("Carregando Fluent UI Library...")
 
 -- Apenas conserta o erro
 local SaveManagerFunc = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))
+
 -- Serviços
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
