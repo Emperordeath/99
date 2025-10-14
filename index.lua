@@ -1,6 +1,45 @@
-task.wait(10)
--- Apenas conserta o erro
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+print("Carregando Fluent UI Library...")
+
+-- Função segura para carregar bibliotecas
+local function loadLibrary(url)
+    local success, response = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+    if not success then
+        warn("Falha ao carregar: " .. url)
+        return nil
+    end
+    return response
+end
+
+-- URLs alternativas para Fluent UI
+local fluentUrls = {
+    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Library.lua",
+    "https://raw.githack.com/dawid-scripts/Fluent/master/Library.lua",
+    "https://raw.fastgit.org/dawid-scripts/Fluent/master/Library.lua",
+    "https://sirius.menu/rayfield" -- Fallback para Rayfield (UI alternativa)
+}
+
+-- Tentar carregar a Fluent UI
+local Fluent
+for _, url in ipairs(fluentUrls) do
+    Fluent = loadLibrary(url)
+    if Fluent then
+        print("✅ Fluent UI carregada com sucesso!")
+        break
+    end
+end
+
+-- Se Fluent ainda for nil, use uma UI alternativa (Rayfield)
+if not Fluent then
+    warn("⚠️ Fluent UI não carregou. Tentando Rayfield...")
+    Fluent = loadLibrary("https://sirius.menu/rayfield")
+    if Fluent then
+        print("✅ Rayfield carregado como alternativa!")
+    else
+        error("❌ Nenhuma UI carregou. Verifique sua conexão ou executor.")
+    end
+end
 
 -- Serviços
 local Players = game:GetService("Players")
