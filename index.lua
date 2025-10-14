@@ -1,7 +1,7 @@
 --[[
     Versão otimizada para mobile
 ]]
-task.wait(10)
+task.wait(5)
 
 print("Carregando Rayfield UI...")
 
