@@ -1,58 +1,18 @@
 --[[
-    Script Teleporte com UI - MOBILE FRIENDLY (Delta Executor)
-    Versão corrigida com fallback para Rayfield e proteção contra nil values.
+    Versão otimizada para mobile
 ]]
-print("Carregando UI Library...")
+task.wait(10)
 
--- Função segura para carregar bibliotecas
-local function loadLibrary(url)
-    local success, response = pcall(function()
-        return loadstring(game:HttpGet(url))()
-    end)
-    if not success then
-        warn("Falha ao carregar: " .. url)
-        return nil
-    end
-    return response
-end
+print("Carregando Rayfield UI...")
 
--- URLs para Fluent UI e Rayfield (fallback)
-local uiUrls = {
-    fluent = {
-        "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Library.lua",
-        "https://raw.githack.com/dawid-scripts/Fluent/master/Library.lua",
-        "https://raw.fastgit.org/dawid-scripts/Fluent/master/Library.lua"
-    },
-    rayfield = {
-        "https://sirius.menu/rayfield"
-    }
-}
+-- Carregar Rayfield (URL confiável e funcional)
+local Rayfield
+local success, err = pcall(function()
+    Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+end)
 
--- Tentar carregar Fluent UI
-local Fluent
-for _, url in ipairs(uiUrls.fluent) do
-    Fluent = loadLibrary(url)
-    if Fluent then
-        print("✅ Fluent UI carregada!")
-        break
-    end
-end
-
--- Se Fluent falhar, carregar Rayfield
-if not Fluent then
-    warn("⚠️ Fluent UI não carregou. Tentando Rayfield...")
-    for _, url in ipairs(uiUrls.rayfield) do
-        Fluent = loadLibrary(url)
-        if Fluent then
-            print("✅ Rayfield carregado como alternativa!")
-            break
-        end
-    end
-end
-
--- Se nenhuma UI carregar, abortar
-if not Fluent then
-    error("❌ Nenhuma UI carregou. Verifique sua conexão ou executor.")
+if not success or not Rayfield then
+    error("❌ Falha ao carregar Rayfield. Verifique sua conexão ou executor.")
 end
 
 -- Serviços
@@ -79,7 +39,7 @@ local Config = {
     stealthDelay = 0.5,
     chaoTransparency = 1,
     chaoSize = 200,
-    theme = "Darker",
+    theme = "Dark",
     particlesEnabled = false,
     antiAFK = false,
     antiVoid = false,
@@ -91,15 +51,14 @@ local Config = {
     dashSpeed = 100
 }
 
--- Sistema de Notificação (compatível com Fluent e Rayfield)
+-- Sistema de Notificação
 local function notify(title, msg)
-    if Fluent.Notify then
-        Fluent:Notify({ Title = title, Content = msg, Duration = 3 })
-    elseif Fluent:CreateNotification then
-        Fluent:CreateNotification(title, msg, 3)
-    else
-        print(title .. ": " .. msg)
-    end
+    Rayfield:Notify({
+        Title = title,
+        Content = msg,
+        Duration = 3,
+        Image = 4483362458 -- Ícone padrão
+    })
 end
 
 -- Escanear itens
@@ -123,13 +82,7 @@ local function scan()
     end
 
     print("Bandagens: " .. #bandagens .. " | Baús: " .. #baus)
-    if Fluent then
-        if #bandagens > 0 or #baus > 0 then
-            notify("✅ Itens Encontrados", string.format("Bandagens: %d | Baús: %d", #bandagens, #baus))
-        else
-            notify("⚠️ Nenhum Item", "Nenhuma bandagem ou baú encontrado.")
-        end
-    end
+    notify("✅ Itens Encontrados", string.format("Bandagens: %d | Baús: %d", #bandagens, #baus))
 end
 
 -- Obter posição
@@ -432,7 +385,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
     if input.KeyCode == Enum.KeyCode.RightControl then
-        local gui = player.PlayerGui:FindFirstChild("Fluent") or player.PlayerGui:FindFirstChild("Rayfield")
+        local gui = player.PlayerGui:FindFirstChild("Rayfield")
         if gui then
             gui.Enabled = not gui.Enabled
         end
@@ -462,49 +415,29 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Criar Interface (compatível com Fluent e Rayfield)
-local Window
-if Fluent.CreateWindow then
-    Window = Fluent:CreateWindow({
-        Title = "🎯 Teleport Script v3.0",
-        SubTitle = "by Deathbringer",
-        TabWidth = 160,
-        Size = UDim2.fromOffset(580, 460),
-        Acrylic = true,
-        Theme = Config.theme,
-        MinimizeKey = Enum.KeyCode.LeftControl
-    })
-elseif Fluent.CreateLib then
-    local Rayfield = Fluent
-    Window = Rayfield:CreateWindow({
-        Name = "🎯 Teleport Script v3.0",
-        LoadingTitle = "Carregando...",
-        LoadingSubtitle = "by Deathbringer",
-        ConfigurationSaving = { Enabled = true },
-        Discord = { Enabled = false }
-    })
-end
-
--- Verificar se a UI foi criada
-if not Window then
-    error("❌ Falha ao criar a interface. Tente reiniciar o executor.")
-end
+-- Criar Interface com Rayfield
+local Window = Rayfield:CreateWindow({
+    Name = "🎯 Teleport Script v3.0",
+    LoadingTitle = "Carregando...",
+    LoadingSubtitle = "by Deathbringer",
+    ConfigurationSaving = { Enabled = true },
+    Discord = { Enabled = false }
+})
 
 -- Abas
 local Tabs = {
-    Bandagens = Window:AddTab({ Title = "🩹 Bandagens", Icon = "" }),
-    Baus = Window:AddTab({ Title = "📦 Baús", Icon = "" }),
-    Chao = Window:AddTab({ Title = "🟦 Chão", Icon = "" }),
-    Protecao = Window:AddTab({ Title = "🛡️ Proteção", Icon = "" }),
-    Visual = Window:AddTab({ Title = "👁️ Visual", Icon = "" }),
-    Movimento = Window:AddTab({ Title = "⚡ Movimento", Icon = "" }),
-    Config = Window:AddTab({ Title = "⚙️ Config", Icon = "" })
+    Bandagens = Window:CreateTab("Bandagens", 4483362458),
+    Baus = Window:CreateTab("Baús", 4483362458),
+    Chao = Window:CreateTab("Chão", 4483362458),
+    Protecao = Window:CreateTab("Proteção", 4483362458),
+    Visual = Window:CreateTab("Visual", 4483362458),
+    Movimento = Window:CreateTab("Movimento", 4483362458),
+    Config = Window:CreateTab("Config", 4483362458)
 }
 
 -- ABA BANDAGENS
-Tabs.Bandagens:AddButton({
-    Title = "📍 Teleportar para Mais Próxima",
-    Description = "Teleporta para a bandagem mais próxima",
+Tabs.Bandagens:CreateButton({
+    Name = "Teleportar para Mais Próxima",
     Callback = function()
         scan()
         teleProximo(bandagens, "bandagem")
@@ -512,9 +445,8 @@ Tabs.Bandagens:AddButton({
 })
 
 -- ABA BAÚS
-Tabs.Baus:AddButton({
-    Title = "📍 Teleportar para Mais Próximo",
-    Description = "Teleporta para o baú mais próximo",
+Tabs.Baus:CreateButton({
+    Name = "Teleportar para Mais Próximo",
     Callback = function()
         scan()
         teleProximo(baus, "baú")
@@ -522,10 +454,9 @@ Tabs.Baus:AddButton({
 })
 
 -- ABA CHÃO
-Tabs.Chao:AddToggle({
-    Title = "🟢 Ativar Chão Invisível",
-    Description = "Liga/Desliga o chão invisível",
-    Default = false,
+Tabs.Chao:CreateToggle({
+    Name = "Ativar Chão Invisível",
+    CurrentValue = false,
     Callback = function(value)
         chaoAtivo = value
         if value then
@@ -548,20 +479,18 @@ Tabs.Chao:AddToggle({
 })
 
 -- ABA PROTEÇÃO
-Tabs.Protecao:AddToggle({
-    Title = "🛡️ Anti-AFK",
-    Description = "Evita ser kickado por inatividade",
-    Default = false,
+Tabs.Protecao:CreateToggle({
+    Name = "Anti-AFK",
+    CurrentValue = false,
     Callback = function(value)
         Config.antiAFK = value
         toggleAntiAFK(value)
     end
 })
 
-Tabs.Protecao:AddToggle({
-    Title = "🕳️ Anti-Void",
-    Description = "Protege contra quedas no void",
-    Default = false,
+Tabs.Protecao:CreateToggle({
+    Name = "Anti-Void",
+    CurrentValue = false,
     Callback = function(value)
         Config.antiVoid = value
         toggleAntiVoid(value)
@@ -569,20 +498,18 @@ Tabs.Protecao:AddToggle({
 })
 
 -- ABA VISUAL
-Tabs.Visual:AddToggle({
-    Title = "👁️ ESP",
-    Description = "Mostra caixas nos itens",
-    Default = false,
+Tabs.Visual:CreateToggle({
+    Name = "ESP",
+    CurrentValue = false,
     Callback = function(value)
         Config.espEnabled = value
         toggleESP(value)
     end
 })
 
-Tabs.Visual:AddToggle({
-    Title = "🔍 Chams",
-    Description = "Destaque nos itens (wallhack)",
-    Default = false,
+Tabs.Visual:CreateToggle({
+    Name = "Chams",
+    CurrentValue = false,
     Callback = function(value)
         Config.chamsEnabled = value
         toggleChams(value)
@@ -590,20 +517,18 @@ Tabs.Visual:AddToggle({
 })
 
 -- ABA MOVIMENTO
-Tabs.Movimento:AddToggle({
-    Title = "⚡ Infinite Jump",
-    Description = "Pulo infinito",
-    Default = false,
+Tabs.Movimento:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
     Callback = function(value)
         Config.infiniteJump = value
         toggleInfiniteJump(value)
     end
 })
 
-Tabs.Movimento:AddToggle({
-    Title = "➡️ Dash",
-    Description = "Dash rápido (Q)",
-    Default = false,
+Tabs.Movimento:CreateToggle({
+    Name = "Dash (Q)",
+    CurrentValue = false,
     Callback = function(value)
         Config.dashEnabled = value
         notify(value and "✅ Dash" or "🔴 Dash", value and "Ativado!" or "Desativado")
@@ -611,9 +536,8 @@ Tabs.Movimento:AddToggle({
 })
 
 -- ABA CONFIG
-Tabs.Config:AddButton({
-    Title = "🔄 Atualizar Itens",
-    Description = "Rescaneia bandagens e baús",
+Tabs.Config:CreateButton({
+    Name = "Atualizar Itens",
     Callback = function()
         scan()
     end
