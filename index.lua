@@ -1,5 +1,4 @@
-print("Carregando Fluent UI Library...")
-
+task.wait(10)
 -- Apenas conserta o erro
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
