@@ -1,8 +1,7 @@
 --[[
-    Voidrake Hub - Teleport Script
+    Voidrake Hub - Teleport Script (Corrigido)
     Powered by: Deathbringer
-    UI: Rayfield (Mobile/PC Friendly)
-    Features: Dropdowns estáveis, teleporte preciso, sem erros.
+    Fix: Detecção correta de "Bandage" e "Item ChestX".
 ]]
 
 -- Carregar Rayfield (com proteção)
@@ -10,7 +9,6 @@ local Rayfield
 local success, err = pcall(function()
     Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 end)
-
 if not success or not Rayfield then
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "❌ Erro",
@@ -101,29 +99,44 @@ local function updateDropdowns()
     end
 end
 
--- ========== [ Escanear Itens ] ==========
+-- ========== [ Escanear Itens (Corrigido) ] ==========
 local function scan()
     bandagens = {}
     baus = {}
 
-    if Workspace:FindFirstChild("Items") then
-        for _, v in pairs(Workspace.Items:GetChildren()) do
-            if v.Name == "Bandage" then
-                table.insert(bandagens, v)
-            else
-                for _, nome in pairs({"Item Chest", "Item Chest2", "Item Chest3", "Item Chest4", "Item Chest5", "Item Chest6", "Chest", "ItemChest"}) do
-                    if v.Name == nome then
-                        table.insert(baus, v)
-                        break
-                    end
-                end
-            end
+    -- Debug: Verificar se "Items" existe no Workspace
+    if not Workspace:FindFirstChild("Items") then
+        print("⚠️ Pasta 'Items' não encontrada no Workspace!")
+        notify("⚠️ Aviso", "Pasta 'Items' não encontrada. Verifique o mapa.")
+        return
+    end
+
+    -- Buscar bandagens ("Bandage")
+    for _, v in pairs(Workspace.Items:GetChildren()) do
+        if v.Name == "Bandage" then
+            table.insert(bandagens, v)
+            print("✅ Bandagem encontrada: " .. v.Name)
         end
     end
 
-    print("Bandagens: " .. #bandagens .. " | Baús: " .. #baus)
-    updateDropdowns()
-    notify("✅ Itens Atualizados", string.format("Bandagens: %d | Baús: %d", #bandagens, #baus))
+    -- Buscar baús ("Item Chest", "Item Chest2", etc.)
+    for _, v in pairs(Workspace.Items:GetChildren()) do
+        if string.find(v.Name:lower(), "chest") or string.find(v.Name:lower(), "bau") then
+            table.insert(baus, v)
+            print("✅ Baú encontrado: " .. v.Name)
+        end
+    end
+
+    -- Debug: Listar itens encontrados
+    print("Bandagens encontradas: " .. #bandagens)
+    print("Baús encontrados: " .. #baus)
+
+    if #bandagens == 0 and #baus == 0 then
+        notify("⚠️ Aviso", "Nenhum item encontrado. Verifique os nomes no Workspace.")
+    else
+        updateDropdowns()
+        notify("✅ Itens Atualizados", string.format("Bandagens: %d | Baús: %d", #bandagens, #baus))
+    end
 end
 
 -- ========== [ Teleporte ] ==========
@@ -177,6 +190,8 @@ local function teleProximo(lista, tipo)
 
     if closest then
         tele(closest)
+    else
+        notify("⚠️ Aviso", "Nenhum " .. tipo .. " válido encontrado.")
     end
 end
 
