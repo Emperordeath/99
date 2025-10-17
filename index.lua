@@ -1,8 +1,8 @@
 --[[
 ═══════════════════════════════════════════════════════════════
-    Script Teleporte Premium v4.0 - MOBILE & PC
+    Script Teleporte v4.0 - MOBILE & PC
     Com Rayfield UI Library
-    Feito por Claude
+    Feito por seu pai
 ═══════════════════════════════════════════════════════════════
 --]]
 
